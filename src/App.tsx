@@ -1,12 +1,13 @@
 import { useJWT } from './Hooks/useJWT'
 import { jwt_encryption_algorithms } from './Constants/algorithms'
+import { DEFAULT_ALGORITHM, DEFAULT_BODY, DEFAULT_HEADER, DEFAULT_SECRET } from './Constants/initialSettings'
 
 function App() {
   const jwt = useJWT({
-    header: "",
-    body: "",
-    secret: "super-secret",
-    algorithm: "HS256"
+    header: DEFAULT_HEADER,
+    body: DEFAULT_BODY,
+    secret: DEFAULT_SECRET,
+    algorithm: DEFAULT_ALGORITHM
   })  
 
   return (

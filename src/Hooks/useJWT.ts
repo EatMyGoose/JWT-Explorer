@@ -102,7 +102,7 @@ export function useJWT(initialSettings: IInitialJWT)
     const [signatureVerified, setSignatureVerified] = React.useState<boolean>(true);
 
     const [encodedJwt, setEncodedJwt] = React.useState<string>();
-    const [validEncodedJwt, setValidEncodedJwt] = React.useState<boolean>();
+    const [validEncodedJwt, setValidEncodedJwt] = React.useState<boolean>(true);
 
     function _setEncodedToken(error: boolean, newToken: string) : void
     {
@@ -112,6 +112,20 @@ export function useJWT(initialSettings: IInitialJWT)
         setValidEncodedJwt(true);
         setSignatureVerified(true);
     }
+
+    // For page load
+    React.useEffect(
+        () => {
+            CreateJWTTokenAsync(
+                initialSettings.body,
+                initialSettings.header,
+                initialSettings.secret,
+                initialSettings.algorithm,
+                _setEncodedToken
+            )
+        },
+        []
+    )
 
     function onChangeJwtToken(newToken: string): void
     {
