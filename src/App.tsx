@@ -2,6 +2,7 @@ import { useJWT } from './Hooks/useJWT'
 import { jwt_encryption_algorithms } from './Constants/algorithms'
 import { DEFAULT_ALGORITHM, DEFAULT_BODY, DEFAULT_HEADER, DEFAULT_SECRET} from './Constants/initialSettings'
 import { JsonEditor } from './Components/JsonEditor';
+import { AppHeader } from './Components/Header';
 
 function App() {
   const jwt = useJWT({
@@ -13,11 +14,7 @@ function App() {
 
   return (
     <>
-      <div className='has-background-primary-dark block'>
-        <div className='container pt-3 pb-3'>
-          <h1 className="title is-2 has-text-white">JWT Editor</h1>
-        </div>
-      </div>
+      <AppHeader/>
 
       <div className="container box columns">
           <h1></h1>
