@@ -1,0 +1,22 @@
+
+.json_editor{
+    overflow: auto;
+    border-radius: var(--bulma-radius);
+    transition: outline-color 0.2s ease, box-shadow 0.2s ease;
+
+    outline-color: hsla(var(--bulma-warning-h), var(--bulma-warning-s), var(--bulma-warning-l), 0);
+    outline-width: 1px;
+    outline-style: solid;
+}
+
+.json_editor:focus-within{
+    box-shadow: 0px 0px 0px 3px hsla(var(--bulma-link-h), var(--bulma-link-s), var(--bulma-link-l), 0.4)
+}
+
+.json_editor.warning:focus-within{
+    box-shadow: 0px 0px 0px 3px hsla(var(--bulma-warning-h), var(--bulma-warning-s), var(--bulma-warning-l), 0.4)
+}
+
+.json_editor.warning{
+    outline-color: hsl(var(--bulma-warning-h), var(--bulma-warning-s), var(--bulma-warning-l));
+}

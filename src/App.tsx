@@ -1,20 +1,21 @@
 import { useJWT } from './Hooks/useJWT'
 import { jwt_encryption_algorithms } from './Constants/algorithms'
-import { DEFAULT_ALGORITHM, DEFAULT_BODY, DEFAULT_HEADER, DEFAULT_SECRET } from './Constants/initialSettings'
+import { DEFAULT_ALGORITHM, DEFAULT_BODY, DEFAULT_HEADER, DEFAULT_SECRET} from './Constants/initialSettings'
+import { JsonEditor } from './Components/JsonEditor';
 
 function App() {
   const jwt = useJWT({
     header: DEFAULT_HEADER,
     body: DEFAULT_BODY,
     secret: DEFAULT_SECRET,
-    algorithm: DEFAULT_ALGORITHM
+    algorithm: DEFAULT_ALGORITHM  
   })  
 
   return (
     <>
       <div className='has-background-primary-dark block'>
         <div className='container pt-3 pb-3'>
-          <h1 className="title is-2">JWT Editor</h1>
+          <h1 className="title is-2 has-text-white">JWT Editor</h1>
         </div>
       </div>
 
@@ -25,7 +26,7 @@ function App() {
               <label className='label'>JWT Token</label>
               <textarea 
                 className={`block textarea has-fixed-size ${!jwt.validEncodedJwt? "is-warning" : ""}`}
-                rows={25}
+                rows={30}
                 onChange={(e) => jwt.onChangeJwtToken(e.target.value)}
                 value={jwt.encodedJwt}
               >
@@ -42,30 +43,31 @@ function App() {
           <div className="column">
             <div className='field'>
               <label className='label'>Header</label>
-              <textarea 
-                className={`textarea has-fixed-size ${!jwt.jwtHeaderValid? "is-warning" : ""}`}
-                rows={7} 
+              <JsonEditor
+                height='15em'
+                warning={!jwt.jwtHeaderValid}
                 value={jwt.jwtHeader}
-                onChange={(e) => jwt.onChangeHeaders(e.target.value)}
+                onChange={jwt.onChangeHeaders}
               />
             </div>
 
             <div className='field'>
               <label className='label'>Body</label>
-              <textarea 
-                className={`textarea has-fixed-size ${!jwt.jwtBodyValid? "is-warning" : ""}`}
-                rows={15} 
+
+              <JsonEditor
+                height='25em'
+                warning={!jwt.jwtBodyValid}
                 value={jwt.jwtBody}
-                onChange={(e) => jwt.onChangeBody(e.target.value)}
-              >  
-              </textarea>
+                onChange={jwt.onChangeBody}
+              />
             </div>
+           
             
             <div className='field'>
               <label className='label'>Secret</label>
               <textarea 
                 className={`textarea has-fixed-size`}
-                rows={3} 
+                rows={2} 
                 value={jwt.jwtSecret}
                 onChange={(e) => jwt.onChangeSecret(e.target.value)}
               >

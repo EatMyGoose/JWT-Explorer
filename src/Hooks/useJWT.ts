@@ -1,6 +1,7 @@
 import React from "react";
 import * as jose from 'jose'
 import { jwt_encryption_algorithms_set } from "../Constants/algorithms";
+import { PrettyPrintJson } from "../Util/json";
 
 export interface IInitialJWT
 {
@@ -8,11 +9,6 @@ export interface IInitialJWT
     body: string,
     secret: string
     algorithm: string
-}
-
-function PrettyPrintJson(obj: any) : string
-{
-    return JSON.stringify(obj, null, 2);
 }
 
 function TryDecodeHeader(jwtToken: string) : jose.ProtectedHeaderParameters | undefined
@@ -79,7 +75,6 @@ function CreateJWTTokenAsync(
             .sign(secretEncoded)
     )
         .then(token => {
-            console.log(token)
             callback(false, token)
         })
         .catch(e => {
@@ -137,7 +132,6 @@ export function useJWT(initialSettings: IInitialJWT)
             if(headersObj.alg !== undefined &&
               jwt_encryption_algorithms_set.has(headersObj.alg))
             {
-                console.log("setting algo")
                 setAlgorithm(headersObj.alg)
             }
         }
