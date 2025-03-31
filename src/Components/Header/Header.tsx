@@ -1,4 +1,6 @@
 import styles from "./Header.module.css"
+import FROGGE_URL from "../../assets/frogge.png"
+import EDIT_ICON from "../../assets/edit.svg"
 
 export interface IAppHeader
 {
@@ -20,7 +22,7 @@ export function AppHeader(props: IAppHeader)
                         className={`image is-48x48 ${styles.header_icon_bg} ${styles.rounded} ${styles.icon_margin}`}
                     >
                         <img 
-                            src="/edit.svg"
+                            src={EDIT_ICON}
                             className={styles.img_drop_shadow}
                         />
                     </figure>
@@ -32,7 +34,7 @@ export function AppHeader(props: IAppHeader)
                                 className={`image is-48x48 ${styles.drop_shadow} ${styles.drop_shadow_dark} ${styles.icon_margin}`}
                             >
                                 <img 
-                                    src="/frogge.png"
+                                    src={FROGGE_URL}
                                     className={`${styles.rounded} ${styles.wiggle}`}
                                 />
                             </figure>
