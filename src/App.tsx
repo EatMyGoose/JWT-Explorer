@@ -1,15 +1,16 @@
 import { useJWT } from './Hooks/useJWT'
-import { jwt_encryption_algorithms } from './Constants/algorithms'
-import { DEFAULT_ALGORITHM, DEFAULT_BODY, DEFAULT_HEADER, DEFAULT_SECRET} from './Constants/initialSettings'
-import { JsonEditor } from './Components/JsonEditor';
-import { AppHeader } from './Components/Header';
+import { is_symmetric_crypto_algorithm, jwt_encryption_algorithms } from './Constants/algorithms'
+import { DEFAULT_ALGORITHM, DEFAULT_BODY, DEFAULT_HEADER, DEFAULT_PRIVATE_KEY, DEFAULT_PUBLIC_KEY, DEFAULT_SECRET} from './Constants/initialSettings'
+import { JsonEditor } from './Components/JsonEditor/JsonEditor';
+import { AppHeader } from './Components/Header/Header';
+import { SecretInput } from './Components/SecretInput/SecretInput';
 
 function App() {
   const jwt = useJWT({
     header: DEFAULT_HEADER,
     body: DEFAULT_BODY,
-    secret: DEFAULT_SECRET,
-    algorithm: DEFAULT_ALGORITHM  
+    symmetricSecret: DEFAULT_SECRET,
+    algorithm: DEFAULT_ALGORITHM
   })  
 
   return (
@@ -17,7 +18,6 @@ function App() {
       <AppHeader/>
 
       <div className="container box columns">
-          <h1></h1>
           <div className="column">
             <div className='field'>
               <label className='label'>JWT Token</label>
@@ -39,9 +39,19 @@ function App() {
 
           <div className="column">
             <div className='field'>
+              <label className='label'>Algorithm</label>
+              <div className="select is-fullwidth"> 
+                <select value={jwt.algorithm} onChange={e => jwt.onChangeAlgorithm(e.target.value)}>
+                  {
+                    jwt_encryption_algorithms.map(algo => {return <option key={algo} value={algo}>{algo}</option>})
+                  }
+                </select>
+              </div>
+            </div>
+            <div className='field'>
               <label className='label'>Header</label>
               <JsonEditor
-                height='15em'
+                height='12em'
                 warning={!jwt.jwtHeaderValid}
                 value={jwt.jwtHeader}
                 onChange={jwt.onChangeHeaders}
@@ -59,28 +69,20 @@ function App() {
               />
             </div>
            
-            
-            <div className='field'>
-              <label className='label'>Secret</label>
-              <textarea 
-                className={`textarea has-fixed-size`}
-                rows={2} 
-                value={jwt.jwtSecret}
-                onChange={(e) => jwt.onChangeSecret(e.target.value)}
-              >
-              </textarea>
-            </div>
+            <SecretInput
+              isSymmetricAlgorithm={is_symmetric_crypto_algorithm(jwt.algorithm)}
 
-            <div className='field'>
-              <label className='label'>Algorithm</label>
-              <div className="select is-fullwidth"> 
-                <select value={jwt.algorithm} onChange={e => jwt.onChangeAlgorithm(e.target.value)}>
-                  {
-                    jwt_encryption_algorithms.map(algo => {return <option value={algo}>{algo}</option>})
-                  }
-                </select>
-              </div>
-            </div>
+              symmetricSecret={jwt.jwtSymmetricSecret}
+              onSymmetricSecretChanged={jwt.onChangeSymmetricSecret}
+
+              publicKey={jwt.publicKey}
+              publicKeyValid={jwt.publicKeyValid}
+              onPublicKeyChanged={jwt.onChangePublicKey}
+
+              privateKey={jwt.privateKey}
+              privateKeyValid={jwt.privateKeyValid}
+              onPrivateKeyChanged={jwt.onChangePrivateKey}
+            />
           </div>
       </div>
     </>

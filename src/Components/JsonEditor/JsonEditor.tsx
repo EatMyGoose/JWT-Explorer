@@ -1,6 +1,6 @@
 import CodeEditor from '@uiw/react-textarea-code-editor';
-import { TAB_WIDTH } from '../Constants/initialSettings';
 import styles from "./JsonEditor.module.css";
+import { TAB_WIDTH } from '../../Constants/initialSettings';
 
 export interface IJsonEditor
 {

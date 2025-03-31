@@ -1,14 +1,15 @@
 import React from "react";
 import * as jose from 'jose'
-import { jwt_encryption_algorithms_set } from "../Constants/algorithms";
+import { allows_plaintext_secret, is_symmetric_crypto_algorithm, jwt_encryption_algorithms_set } from "../Constants/algorithms";
 import { PrettyPrintJson } from "../Util/json";
+import { publicPrivateKeyMap } from "../Constants/initialSettings";
 
 export interface IInitialJWT
 {
     header: string,
     body: string,
-    secret: string
-    algorithm: string
+    symmetricSecret: string,
+    algorithm: string,
 }
 
 function TryDecodeHeader(jwtToken: string) : jose.ProtectedHeaderParameters | undefined
@@ -49,14 +50,40 @@ function TryParseJson(str: string) : [true, any] | [false, undefined]
     }
 }
 
-function CreateJWTTokenAsync(
+async function CreateJWTTokenAsync(
     body: string, 
     headers: string, 
-    secret: string,
+    symmetricSecret: string,
+    asymmetricSecret: string,
     algorithm: string,
-    callback: (error: boolean, token: string) => void) : void
+    setPrivateKeyValid: (newState: boolean) => void,
+    callback: (error: boolean, token: string) => void) : Promise<void>
 {
-    const secretEncoded = new TextEncoder().encode(secret);
+    async function _getSecret() : Promise<jose.CryptoKey | Uint8Array | undefined>
+    {
+        const isSymmetricAlgorithm = is_symmetric_crypto_algorithm(algorithm)
+        
+        if(isSymmetricAlgorithm)
+        {
+            return new TextEncoder().encode(symmetricSecret);
+        }
+        else
+        {
+            try
+            {
+                const key = await jose.importPKCS8(asymmetricSecret, algorithm);
+                setPrivateKeyValid(true);
+                return key;
+            }
+            catch(e)
+            {
+                console.error(e);
+                setPrivateKeyValid(false);
+                return undefined;
+            }
+        }
+        
+    }
 
     const [bodyValid, bodyObj] = TryParseJson(body);
     const [headersValid, headerObj] = TryParseJson(headers);
@@ -67,20 +94,24 @@ function CreateJWTTokenAsync(
         ...headerObj,
         alg: algorithm
     };
+    
+    const secretEncoded = await _getSecret();
+    if(secretEncoded === undefined) return callback(true, "");
 
-    (
-        new jose
+    try
+    {
+        const token = await new jose
             .SignJWT(bodyObj)
             .setProtectedHeader(headersWithAlgorithm)
             .sign(secretEncoded)
-    )
-        .then(token => {
-            callback(false, token)
-        })
-        .catch(e => {
-            console.error(e)
-            callback(true, "")
-        })
+
+        return callback(false, token);
+    }
+    catch(e)
+    {
+        console.error(e);
+        return callback(true, "");
+    }
 }
 
 export function useJWT(initialSettings: IInitialJWT)
@@ -91,12 +122,18 @@ export function useJWT(initialSettings: IInitialJWT)
     const [jwtBody, setJwtBody] = React.useState<string>(initialSettings.body);
     const [jwtBodyValid, setJwtBodyValid] = React.useState<boolean>(true);
 
-    const [jwtSecret, setJwtSecret] = React.useState<string>(initialSettings.secret);
+    const [jwtSymmetricSecret, setJwtSymmetricSecret] = React.useState<string>(initialSettings.symmetricSecret);
+    
+    // Note - public key is in the SPKI format
+    const [publicKey, setPublicKey] = React.useState<string>("");
+    const [publicKeyValid, setPublicKeyValid] = React.useState<boolean>(true);
+    const [privateKey, setPrivateKey] = React.useState<string>("");
+    const [privateKeyValid, setPrivateKeyValid] = React.useState<boolean>(true);
 
     const [algorithm, setAlgorithm] = React.useState<string>(initialSettings.algorithm);
     const [signatureVerified, setSignatureVerified] = React.useState<boolean>(true);
 
-    const [encodedJwt, setEncodedJwt] = React.useState<string>();
+    const [encodedJwt, setEncodedJwt] = React.useState<string>("");
     const [validEncodedJwt, setValidEncodedJwt] = React.useState<boolean>(true);
 
     function _setEncodedToken(error: boolean, newToken: string) : void
@@ -108,22 +145,48 @@ export function useJWT(initialSettings: IInitialJWT)
         setSignatureVerified(true);
     }
 
+
     // For page load
     React.useEffect(
         () => {
             CreateJWTTokenAsync(
                 initialSettings.body,
                 initialSettings.header,
-                initialSettings.secret,
+                initialSettings.symmetricSecret,
+                "",
                 initialSettings.algorithm,
+                setPrivateKeyValid,
                 _setEncodedToken
             )
         },
         []
     )
 
-    function onChangeJwtToken(newToken: string): void
+    async function _verifySignatureAsymmetric(publicKey: string, encodedJwt: string)
     {
+        let importedKey = undefined
+        try
+        {
+            importedKey = await jose.importSPKI(publicKey, algorithm)
+            setPublicKeyValid(true)
+        }
+        catch(e)
+        {
+            setPublicKeyValid(false)
+            setSignatureVerified(false);
+            return;
+        }
+        
+
+        await jose.jwtVerify(encodedJwt, importedKey)
+            .then(_ => setSignatureVerified(true))
+            .catch(_ => setSignatureVerified(false))
+    }
+
+    async function onChangeJwtToken(newToken: string): Promise<void>
+    {
+        setEncodedJwt(newToken)
+
         const headersObj = TryDecodeHeader(newToken);
         if(headersObj)
         {
@@ -141,27 +204,35 @@ export function useJWT(initialSettings: IInitialJWT)
         {
             setJwtBody(PrettyPrintJson(jwtBodyObj))
         }
-
-        const encodedSecret = new TextEncoder().encode(jwtSecret);
-        jose.jwtVerify(newToken, encodedSecret)
-            .then(_ => setSignatureVerified(true))
-            .catch(_ => setSignatureVerified(false))
-
-        setEncodedJwt(newToken)
-
+        
         const tokenValid = headersObj !== undefined && jwtBodyObj !== undefined;
         setValidEncodedJwt(tokenValid)
+
+        //Verify token
+        if(is_symmetric_crypto_algorithm(algorithm))
+        {
+            const encodedSecret = new TextEncoder().encode(jwtSymmetricSecret);
+            jose.jwtVerify(newToken, encodedSecret)
+                .then(_ => setSignatureVerified(true))
+                .catch(_ => setSignatureVerified(false))
+        }
+        else
+        {
+            await _verifySignatureAsymmetric(publicKey, newToken);
+        }
     }
 
-    function onChangeSecret(newSecret: string)
+    function onChangeSymmetricSecret(newSecret: string)
     {
-        setJwtSecret(newSecret);
+        setJwtSymmetricSecret(newSecret);
 
         CreateJWTTokenAsync(
             jwtBody,
             jwtHeader,
             newSecret,
+            privateKey,
             algorithm,
+            setPrivateKeyValid,
             _setEncodedToken
         )
     }
@@ -175,8 +246,10 @@ export function useJWT(initialSettings: IInitialJWT)
         CreateJWTTokenAsync(
             newBody,
             jwtHeader,
-            jwtSecret,
+            jwtSymmetricSecret,
+            privateKey,
             algorithm,
+            setPrivateKeyValid,
             _setEncodedToken
         )
     }
@@ -199,8 +272,10 @@ export function useJWT(initialSettings: IInitialJWT)
         CreateJWTTokenAsync(
             jwtBody,
             newHeaders,
-            jwtSecret,
+            jwtSymmetricSecret,
+            privateKey,
             algorithm,
+            setPrivateKeyValid,
             _setEncodedToken
         )
     }
@@ -208,6 +283,8 @@ export function useJWT(initialSettings: IInitialJWT)
     function onChangeAlgorithm(newAlgorithm: string)
     {
         setAlgorithm(newAlgorithm);
+
+        //Add 'alg' to header
         const [validJson, headerObj] = TryParseJson(jwtHeader);
         if(validJson)
         {
@@ -215,13 +292,47 @@ export function useJWT(initialSettings: IInitialJWT)
             setJwtHeader(PrettyPrintJson(headerObj))
         }
 
+        //Update with default Public & Private Keys for asymmetric algorithms
+        let selectedPrivateKey: string = privateKey;
+        if(!is_symmetric_crypto_algorithm(newAlgorithm))
+        {
+            const keyPair = publicPrivateKeyMap.get(newAlgorithm)!;
+            selectedPrivateKey = keyPair.privateKey;
+            setPrivateKey(keyPair.privateKey);
+            setPublicKey(keyPair.publicKey);
+        }
+
         CreateJWTTokenAsync(
             jwtBody,
             jwtHeader,
-            jwtSecret,
+            jwtSymmetricSecret,
+            selectedPrivateKey,
             newAlgorithm,
+            setPrivateKeyValid,
             _setEncodedToken
         )
+    }
+
+    function onChangePrivateKey(newPrivateKey: string)
+    {
+        setPrivateKey(newPrivateKey);
+
+        CreateJWTTokenAsync(
+            jwtBody,
+            jwtHeader,
+            jwtSymmetricSecret,
+            newPrivateKey,
+            algorithm,
+            setPrivateKeyValid,
+            _setEncodedToken
+        )
+    }
+
+    async function onChangePublicKey(newPublicKey: string) : Promise<void>
+    {
+        setPublicKey(newPublicKey);
+        
+        await _verifySignatureAsymmetric(newPublicKey, encodedJwt);
     }
 
     return {
@@ -231,7 +342,14 @@ export function useJWT(initialSettings: IInitialJWT)
         jwtBody,
         jwtBodyValid,
 
-        jwtSecret,
+        jwtSymmetricSecret,
+
+        privateKey,
+        privateKeyValid,
+
+        publicKey,
+        publicKeyValid,
+
         algorithm,
         signatureVerified,
 
@@ -239,9 +357,11 @@ export function useJWT(initialSettings: IInitialJWT)
         validEncodedJwt,
 
         onChangeJwtToken,
-        onChangeSecret,
+        onChangeSymmetricSecret,
         onChangeBody,
         onChangeHeaders,
-        onChangeAlgorithm
+        onChangeAlgorithm,
+        onChangePrivateKey,
+        onChangePublicKey
     }
 }
