@@ -5,6 +5,7 @@ import { JsonEditor } from './Components/JsonEditor/JsonEditor';
 import { AppHeader } from './Components/Header/Header';
 import { SecretInput } from './Components/SecretInput/SecretInput';
 import { generateAsymmetricKey } from './Util/keygen';
+import { IsWednesday } from './Util/date';
 
 function App() {
   const jwt = useJWT({
@@ -22,9 +23,13 @@ function App() {
 
   const isSymmetricAlgorithm = is_symmetric_crypto_algorithm(jwt.algorithm);
 
+  const isWednesday: boolean = IsWednesday(new Date())
+
   return (
     <>
-      <AppHeader/>
+      <AppHeader
+        isWednesday={isWednesday}
+      />
 
       <div className="container box columns">
         <div className="column">

@@ -18,7 +18,7 @@
 }   
 
 @media (prefers-color-scheme: dark){
-    .drop_shadow:not(.drop-shadow-dark){
+    .drop_shadow:not(.drop_shadow_dark){
         box-shadow: 0px 0.1em 0.5em 0.3em rgba(150,150,150, 0.15);
     }
 }
@@ -27,8 +27,43 @@
     filter: drop-shadow(0.1em 0.1em 0.1em rgba(40,40,40, 0.5))
 }
 
+.rounded{
+    border-radius: 0.15em ;
+}
+
+.icon_margin{
+    margin-left: 0.2em;
+    margin-right: 0.2em;
+}
+
 .header_icon_bg {
     background-image: linear-gradient(312deg, rgba(255,255,255,0.15) 40%, rgba(255,255,255,0.05) 100%);
-    border-radius: 0.15em ;
     padding: 0.15em;
 }
+
+.header_text {
+    margin-top: 0.1em;
+}
+
+.wiggle {
+    animation-name: wiggle_animation;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes wiggle_animation {    
+    0% {transform: rotate(0deg);}
+
+    15% {transform: rotate(1deg);}
+    25% {transform: rotate(5deg);}
+    35% {transform: rotate(1deg);}
+
+    50% {transform: rotate(0deg);}
+
+    65% {transform: rotate(-1deg);}
+    75% {transform: rotate(-5deg);}
+    85% {transform: rotate(-1deg);}
+}
+
+
