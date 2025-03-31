@@ -1,9 +1,9 @@
 import * as jose from "jose"
 import { TPublicPrivateKey } from "../Constants/initialSettings";
 
-async function generateAsymmetricKey() : Promise<TPublicPrivateKey>
+export async function generateAsymmetricKey(algorithm: string) : Promise<TPublicPrivateKey>
 {
-  const { publicKey, privateKey } = await jose.generateKeyPair('ES512', {extractable: true})
+  const { publicKey, privateKey } = await jose.generateKeyPair(algorithm, {extractable: true})
 
   const exportedPrivateKey = await jose.exportPKCS8(privateKey);
   const exportedPublicKey = await jose.exportSPKI(publicKey);

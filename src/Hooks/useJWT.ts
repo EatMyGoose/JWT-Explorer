@@ -340,6 +340,27 @@ export function useJWT(initialSettings: IInitialJWT)
         await _verifySignatureAsymmetric(newPublicKey, encodedJwt);
     }
 
+    //Public/Private keys generated programmatically
+    //Assume both keys are valid
+    async function onChangeAsymmetricKey(privateKey: string, publicKey: string)
+    {
+        setPrivateKey(privateKey);
+        setPublicKey(publicKey);
+
+        setPublicKeyValid(true);
+        setSignatureVerified(true);
+
+        await CreateJWTTokenAsync(
+            jwtBody,
+            jwtHeader,
+            jwtSymmetricSecret,
+            privateKey,
+            algorithm,
+            setPrivateKeyValid,
+            _setEncodedToken
+        )
+    }
+
     return {
         jwtHeader,
         jwtHeaderValid,
@@ -367,6 +388,7 @@ export function useJWT(initialSettings: IInitialJWT)
         onChangeHeaders,
         onChangeAlgorithm,
         onChangePrivateKey,
-        onChangePublicKey
+        onChangePublicKey,
+        onChangeAsymmetricKey
     }
 }

@@ -4,6 +4,7 @@ import { DEFAULT_ALGORITHM, DEFAULT_BODY, DEFAULT_HEADER, DEFAULT_SECRET} from '
 import { JsonEditor } from './Components/JsonEditor/JsonEditor';
 import { AppHeader } from './Components/Header/Header';
 import { SecretInput } from './Components/SecretInput/SecretInput';
+import { generateAsymmetricKey } from './Util/keygen';
 
 function App() {
   const jwt = useJWT({
@@ -12,6 +13,12 @@ function App() {
     symmetricSecret: DEFAULT_SECRET,
     algorithm: DEFAULT_ALGORITHM
   })  
+
+  async function onGenerateNewAsymmetricKeyPair()
+  {
+    const key = await generateAsymmetricKey(jwt.algorithm)
+    jwt.onChangeAsymmetricKey(key.privateKey, key.publicKey)
+  }
 
   const isSymmetricAlgorithm = is_symmetric_crypto_algorithm(jwt.algorithm);
 
@@ -84,6 +91,8 @@ function App() {
             privateKey={jwt.privateKey}
             privateKeyValid={jwt.privateKeyValid}
             onPrivateKeyChanged={jwt.onChangePrivateKey}
+
+            onGenerateNewKey={onGenerateNewAsymmetricKeyPair}
           />
         </div>
       </div>

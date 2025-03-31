@@ -13,6 +13,8 @@ export interface ISecretInput
     privateKey: string;
     privateKeyValid: boolean;
     onPrivateKeyChanged: TStringAction
+
+    onGenerateNewKey: () => Promise<void>
 }
 
 const textAreaSettings = {
@@ -45,7 +47,15 @@ export function SecretInput(props: ISecretInput)
         return(
             <>
                 <div className='field'>
-                    <label className='label'>Public Key</label>
+                    <div className="is-flex is-justify-content-space-between is-align-items-end">
+                        <label className='label'>Public Key</label>
+                        <button 
+                            className="mb-3 button is-small is-primary is-dark"
+                            onClick={() => props.onGenerateNewKey()}
+                        >
+                                Generate New Pair
+                        </button>
+                    </div>
                     <textarea 
                         {...textAreaSettings}
                         className={`textarea has-fixed-size ${!props.publicKeyValid? "is-warning": ""}`}
