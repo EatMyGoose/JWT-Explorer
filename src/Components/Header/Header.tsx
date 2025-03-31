@@ -10,7 +10,7 @@ export function AppHeader()
                         className={styles.text_shadow}
                         style={{marginTop: "0.1em", marginRight: "0.2em"}}
                     >
-                        JWT Editor
+                        JWT Explorer
                     </div>
                     <figure 
                         className={`image is-48x48 ${styles.header_icon_bg}`}

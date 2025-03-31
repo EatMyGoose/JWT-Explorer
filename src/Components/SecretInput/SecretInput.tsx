@@ -49,7 +49,7 @@ export function SecretInput(props: ISecretInput)
                     <textarea 
                         {...textAreaSettings}
                         className={`textarea has-fixed-size ${!props.publicKeyValid? "is-warning": ""}`}
-                        rows={5} 
+                        rows={4} 
                         value={props.publicKey}
                         onChange={(e) => props.onPublicKeyChanged(e.target.value)}
                     >
@@ -60,7 +60,7 @@ export function SecretInput(props: ISecretInput)
                     <textarea 
                         {...textAreaSettings}
                         className={`textarea has-fixed-size ${!props.privateKeyValid? "is-warning": ""}`}
-                        rows={5} 
+                        rows={4} 
                         value={props.privateKey}
                         onChange={(e) => props.onPrivateKeyChanged(e.target.value)}
                     >
