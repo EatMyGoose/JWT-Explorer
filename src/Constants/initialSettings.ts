@@ -47,7 +47,7 @@ Fo2a7nQAQpKnOrM+CaLWPJbrvpNU8MPSZCTBlg4A0A==
 -----END RSA PRIVATE KEY-----`
 )
 
-type TPublicPrivateKey = {
+export type TPublicPrivateKey = {
     privateKey: string,
     publicKey: string
 }

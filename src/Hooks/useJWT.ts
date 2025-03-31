@@ -1,6 +1,6 @@
 import React from "react";
 import * as jose from 'jose'
-import { allows_plaintext_secret, is_symmetric_crypto_algorithm, jwt_encryption_algorithms_set } from "../Constants/algorithms";
+import { is_symmetric_crypto_algorithm, jwt_encryption_algorithms_set } from "../Constants/algorithms";
 import { PrettyPrintJson } from "../Util/json";
 import { publicPrivateKeyMap } from "../Constants/initialSettings";
 
@@ -44,7 +44,7 @@ function TryParseJson(str: string) : [true, any] | [false, undefined]
     {
         return [true, JSON.parse(str)]
     }
-    catch(e)
+    catch
     {
         return [false, undefined]
     }
@@ -170,17 +170,22 @@ export function useJWT(initialSettings: IInitialJWT)
             importedKey = await jose.importSPKI(publicKey, algorithm)
             setPublicKeyValid(true)
         }
-        catch(e)
+        catch
         {
             setPublicKeyValid(false)
             setSignatureVerified(false);
             return;
         }
         
-
-        await jose.jwtVerify(encodedJwt, importedKey)
-            .then(_ => setSignatureVerified(true))
-            .catch(_ => setSignatureVerified(false))
+        try
+        {
+            await jose.jwtVerify(encodedJwt, importedKey)
+            setSignatureVerified(true)
+        }
+        catch
+        {
+            setSignatureVerified(false)
+        }
     }
 
     async function onChangeJwtToken(newToken: string): Promise<void>
